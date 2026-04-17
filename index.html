@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circuit Package Configurator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: #1a1a18;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: #73726c;
+      margin-bottom: 24px;
+    }
+
+    .pkg-card {
+      background: #ffffff;
+      border: 0.5px solid #e0ded6;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+
+    .pkg-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .pkg-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .badge-blue   { background: #E6F1FB; color: #0C447C; }
+    .badge-purple { background: #EEEDFE; color: #3C3489; }
+    .badge-teal   { background: #E1F5EE; color: #085041; }
+    .badge-amber  { background: #FAEEDA; color: #633806; }
+    .badge-gray   { background: #F1EFE8; color: #444441; }
+
+    .pkg-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a18;
+    }
+
+    .pkg-code {
+      font-size: 11px;
+      color: #9c9a92;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+    }
+
+    .pkg-subtitle {
+      font-size: 12px;
+      color: #73726c;
+      margin: 4px 0 12px;
+    }
+
+    .line-items {
+      border-top: 0.5px solid #e0ded6;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .line-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #73726c;
+      padding: 4px 0;
+    }
+
+    .line-item-name {
+      flex: 1;
+      color: #1a1a18;
+    }
+
+    .line-item-code {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 11px;
+      color: #9c9a92;
+      min-width: 80px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c8c6be;
+      flex-shrink: 0;
+    }
+
+    .dot-required { background: #1D9E75; }
+
+    .connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 4px 0;
+    }
+
+    .connector-line {
+      width: 2px;
+      height: 20px;
+      background: #c8c6be;
+    }
+
+    .connector-label {
+      font-size: 11px;
+      color: #9c9a92;
+      margin: 2px 0;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .choice-btn {
+      border: 0.5px solid #c8c6be;
+      border-radius: 8px;
+      padding: 10px 8px;
+      background: #f5f5f3;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+    }
+
+    .choice-btn:hover {
+      border-color: #888780;
+      background: #ffffff;
+    }
+
+    .choice-btn.selected {
+      border-width: 1.5px;
+      border-color: #185FA5;
+      background: #E6F1FB;
+    }
+
+    .choice-btn.selected .choice-title { color: #0C447C; }
+
+    .choice-btn.selected-purple {
+      border-width: 1.5px;
+      border-color: #534AB7;
+      background: #EEEDFE;
+    }
+
+    .choice-btn.selected-purple .choice-title { color: #3C3489; }
+
+    .choice-btn.selected-amber {
+      border-width: 1.5px;
+      border-color: #854F0B;
+      background: #FAEEDA;
+    }
+
+    .choice-btn.selected-amber .choice-title { color: #633806; }
+
+    .choice-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a18;
+      margin-bottom: 2px;
+    }
+
+    .choice-sub {
+      font-size: 11px;
+      color: #73726c;
+    }
+
+    .ip-choice-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ip-btn {
+      border: 0.5px solid #c8c6be;
+      border-radius: 8px;
+      padding: 6px 12px;
+      background: #f5f5f3;
+      cursor: pointer;
+      font-size: 12px;
+      color: #73726c;
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .ip-btn:hover {
+      border-color: #888780;
+      color: #1a1a18;
+    }
+
+    .ip-btn.selected {
+      border-color: #534AB7;
+      background: #EEEDFE;
+      color: #3C3489;
+      font-weight: 500;
+    }
+
+    .sfp-choice-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sfp-btn {
+      border: 0.5px solid #c8c6be;
+      border-radius: 8px;
+      padding: 5px 10px;
+      background: #f5f5f3;
+      cursor: pointer;
+      font-size: 11px;
+      color: #73726c;
+      transition: all .15s;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    .sfp-btn:hover {
+      border-color: #888780;
+      color: #1a1a18;
+    }
+
+    .sfp-btn.selected {
+      border-color: #0F6E56;
+      background: #E1F5EE;
+      color: #085041;
+      font-weight: 500;
+    }
+
+    .sfp-code {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 10px;
+    }
+
+    .summary-card {
+      background: #f5f5f3;
+      border: 0.5px solid #e0ded6;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 4px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 0.5px solid #e0ded6;
+      gap: 12px;
+    }
+
+    .summary-row:last-child { border-bottom: none; }
+
+    .summary-row-name { color: #1a1a18; }
+
+    .summary-row-code {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 11px;
+      color: #9c9a92;
+      white-space: nowrap;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 480px) {
+      .choice-row { grid-template-columns: 1fr; }
+      .sfp-choice-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <p class="page-title">Circuit package configurator</p>
+    <p class="page-subtitle">Build an IP circuit order by selecting the handoff IP block and router sub-package.</p>
+
+    <div class="pkg-card" style="border-color: #85B7EB;">
+      <div class="pkg-header">
+        <span class="pkg-badge badge-blue">Package 1 — always required</span>
+      </div>
+      <div class="pkg-title">IP Circuit</div>
+      <div class="pkg-code">IPCT2M009A</div>
+      <div class="pkg-subtitle">Base carrier circuit — the foundation of every order</div>
+      <div class="line-items">
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">IP coordinated access charge</div>
+          <div class="line-item-code">IPCA C2M</div>
+          <span class="pkg-badge badge-teal">Required</span>
+        </div>
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">Handoff IP block</div>
+          <div class="line-item-code"></div>
+          <div class="ip-choice-row" id="handoff-ip">
+            <button class="ip-btn selected" onclick="selectHandoffIP(this,'/30')">/30 &nbsp;·&nbsp; 2 usable</button>
+            <button class="ip-btn" onclick="selectHandoffIP(this,'/29')">/29 &nbsp;·&nbsp; 6 usable</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-label">then choose one sub-package</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <div class="choice-row">
+      <div class="choice-btn" id="btn-nhc" onclick="selectSubPkg('nhc')">
+        <div class="choice-title">NHC supplied</div>
+        <div class="choice-sub">Juniper router</div>
+      </div>
+      <div class="choice-btn selected" id="btn-customer" onclick="selectSubPkg('customer')">
+        <div class="choice-title">Customer supplied</div>
+        <div class="choice-sub">Edge equipment</div>
+      </div>
+      <div class="choice-btn" id="btn-carrier" onclick="selectSubPkg('carrier')">
+        <div class="choice-title">Carrier supplied</div>
+        <div class="choice-sub">Edge equipment</div>
+      </div>
+    </div>
+
+    <div id="subpkg-nhc" class="pkg-card hidden" style="border-color: #AFA9EC;">
+      <div class="pkg-header">
+        <span class="pkg-badge badge-purple">Sub-package A — NHC supplied</span>
+      </div>
+      <div class="pkg-title">Juniper router package</div>
+      <div class="pkg-subtitle">NHC provides and manages the Juniper EX2300 as CPE</div>
+      <div class="line-items">
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">Juniper EX2300-C-12T — rental</div>
+          <div class="line-item-code">JEX230012R</div>
+          <span class="pkg-badge badge-purple">Required</span>
+        </div>
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">Juniper EX2300 cloud subscription 3YR</div>
+          <div class="line-item-code">J2300MISTR</div>
+          <span class="pkg-badge badge-purple">Required</span>
+        </div>
+        <div class="line-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; width:100%;">
+            <div class="dot"></div>
+            <div class="line-item-name">SFP module — choose one</div>
+            <span class="pkg-badge badge-gray">Choose one</span>
+          </div>
+          <div class="sfp-choice-row" style="margin-left:14px;">
+            <button class="sfp-btn" onclick="selectSFP(this,'SM-DELL')">SFP SM Dell rental<br><span class="sfp-code">DLSMSPFR</span></button>
+            <button class="sfp-btn" onclick="selectSFP(this,'10G-JUN')">SFP Juniper 10G rental<br><span class="sfp-code">J10GSFPER</span></button>
+            <button class="sfp-btn" onclick="selectSFP(this,'LRM-JUN')">SFP Juniper LRM rental<br><span class="sfp-code">JEXSPF10R</span></button>
+            <button class="sfp-btn" onclick="selectSFP(this,'MMF-JUN')">SFP Juniper MMF rental<br><span class="sfp-code">SFPJUNMMFR</span></button>
+          </div>
+        </div>
+        <div class="line-item">
+          <div class="dot"></div>
+          <div class="line-item-name">Juniper EX2300 rack mount</div>
+          <div class="line-item-code">J23RKMNTR</div>
+          <span class="pkg-badge badge-gray">Optional</span>
+        </div>
+        <div class="line-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; width:100%;">
+            <div class="dot dot-required"></div>
+            <div class="line-item-name">Second IP allocation — choose one</div>
+            <span class="pkg-badge badge-purple">Required</span>
+          </div>
+          <div class="ip-choice-row" style="margin-left:14px;" id="nhc-ip">
+            <button class="ip-btn" onclick="selectIP('nhc',this,'/30')">Static /30</button>
+            <button class="ip-btn" onclick="selectIP('nhc',this,'/29')">Static /29</button>
+            <button class="ip-btn" onclick="selectIP('nhc',this,'DHCP')">DHCP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="subpkg-customer" class="pkg-card" style="border-color: #5DCAA5;">
+      <div class="pkg-header">
+        <span class="pkg-badge badge-teal">Sub-package B — Customer supplied</span>
+      </div>
+      <div class="pkg-title">Edge equipment package</div>
+      <div class="pkg-subtitle">Customer provides and manages their own device</div>
+      <div class="line-items">
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">Edge equipment</div>
+          <div class="line-item-code">EDGEEQUIP</div>
+          <span class="pkg-badge badge-teal">Required</span>
+        </div>
+        <div class="line-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; width:100%;">
+            <div class="dot dot-required"></div>
+            <div class="line-item-name">Second IP allocation — choose one</div>
+            <span class="pkg-badge badge-teal">Required</span>
+          </div>
+          <div class="ip-choice-row" style="margin-left:14px;" id="customer-ip">
+            <button class="ip-btn" onclick="selectIP('customer',this,'/30')">Static /30</button>
+            <button class="ip-btn" onclick="selectIP('customer',this,'/29')">Static /29</button>
+            <button class="ip-btn" onclick="selectIP('customer',this,'DHCP')">DHCP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="subpkg-carrier" class="pkg-card hidden" style="border-color: #EF9F27;">
+      <div class="pkg-header">
+        <span class="pkg-badge badge-amber">Sub-package B — Carrier supplied</span>
+      </div>
+      <div class="pkg-title">Edge equipment package</div>
+      <div class="pkg-subtitle">Carrier provides the device connecting to the circuit</div>
+      <div class="line-items">
+        <div class="line-item">
+          <div class="dot dot-required"></div>
+          <div class="line-item-name">Edge equipment</div>
+          <div class="line-item-code">EDGEEQUIP</div>
+          <span class="pkg-badge badge-amber">Required</span>
+        </div>
+        <div class="line-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px; width:100%;">
+            <div class="dot dot-required"></div>
+            <div class="line-item-name">Second IP allocation — choose one</div>
+            <span class="pkg-badge badge-amber">Required</span>
+          </div>
+          <div class="ip-choice-row" style="margin-left:14px;" id="carrier-ip">
+            <button class="ip-btn" onclick="selectIP('carrier',this,'/30')">Static /30</button>
+            <button class="ip-btn" onclick="selectIP('carrier',this,'/29')">Static /29</button>
+            <button class="ip-btn" onclick="selectIP('carrier',this,'DHCP')">DHCP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-label">order summary</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-row"><span class="summary-row-name">IP circuit</span><span class="summary-row-code">IPCT2M009A</span></div>
+      <div class="summary-row"><span class="summary-row-name">IP coordinated access charge</span><span class="summary-row-code">IPCA C2M</span></div>
+      <div class="summary-row" id="sum-handoff"><span class="summary-row-name">Handoff IP block</span><span class="summary-row-code">/30 (2 usable)</span></div>
+      <div class="summary-row" id="sum-rtr"><span class="summary-row-name">Edge equipment (customer supplied)</span><span class="summary-row-code">EDGEEQUIP</span></div>
+      <div class="summary-row" id="sum-sub" style="display:none;"><span class="summary-row-name">Juniper cloud subscription 3YR</span><span class="summary-row-code">J2300MISTR</span></div>
+      <div class="summary-row" id="sum-sfp" style="display:none;"><span class="summary-row-name" id="sum-sfp-name">SFP — not selected</span><span class="summary-row-code" id="sum-sfp-code">—</span></div>
+      <div class="summary-row" id="sum-ip"><span class="summary-row-name">Second IP allocation</span><span class="summary-row-code" id="sum-ip-val">— not selected</span></div>
+    </div>
+
+  </div>
+
+  <script>
+    const state = { subpkg: 'customer', handoffIP: '/30', nhcIP: null, customerIP: null, carrierIP: null, sfp: null };
+
+    const sfpNames = {
+      'SM-DELL':  ['SFP SM Dell rental',      'DLSMSPFR'],
+      '10G-JUN':  ['SFP Juniper 10G rental',  'J10GSFPER'],
+      'LRM-JUN':  ['SFP Juniper LRM rental',  'JEXSPF10R'],
+      'MMF-JUN':  ['SFP Juniper MMF rental',  'SFPJUNMMFR']
+    };
+
+    function selectSubPkg(type) {
+      state.subpkg = type;
+      ['nhc', 'customer', 'carrier'].forEach(t => {
+        document.getElementById('subpkg-' + t).classList.toggle('hidden', t !== type);
+        const btn = document.getElementById('btn-' + t);
+        btn.className = 'choice-btn';
+        if (t === type) {
+          if (t === 'nhc')     btn.className += ' selected-purple';
+          else if (t === 'carrier') btn.className += ' selected-amber';
+          else                 btn.className += ' selected';
+        }
+      });
+      updateSummary();
+    }
+
+    function selectHandoffIP(btn, val) {
+      state.handoffIP = val;
+      document.querySelectorAll('#handoff-ip .ip-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateSummary();
+    }
+
+    function selectIP(pkg, btn, val) {
+      state[pkg + 'IP'] = val;
+      document.querySelectorAll('#' + pkg + '-ip .ip-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateSummary();
+    }
+
+    function selectSFP(btn, val) {
+      state.sfp = val;
+      document.querySelectorAll('.sfp-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const pkg = state.subpkg;
+      const ipVal = state[pkg + 'IP'];
+      const isNHC = pkg === 'nhc';
+
+      document.getElementById('sum-handoff').querySelector('.summary-row-code').textContent =
+        state.handoffIP === '/30' ? '/30 (2 usable)' : '/29 (6 usable)';
+
+      document.getElementById('sum-sub').style.display = isNHC ? '' : 'none';
+      document.getElementById('sum-sfp').style.display = isNHC ? '' : 'none';
+
+      if (isNHC) {
+        document.getElementById('sum-rtr').querySelector('.summary-row-name').textContent = 'NHC Juniper EX2300-C-12T — rental';
+        document.getElementById('sum-rtr').querySelector('.summary-row-code').textContent = 'JEX230012R';
+        if (state.sfp) {
+          const [name, code] = sfpNames[state.sfp];
+          document.getElementById('sum-sfp-name').textContent = name;
+          document.getElementById('sum-sfp-code').textContent = code;
+        } else {
+          document.getElementById('sum-sfp-name').textContent = 'SFP module — not selected';
+          document.getElementById('sum-sfp-code').textContent = '—';
+        }
+      } else {
+        const label = pkg === 'customer' ? 'Edge equipment (customer supplied)' : 'Edge equipment (carrier supplied)';
+        document.getElementById('sum-rtr').querySelector('.summary-row-name').textContent = label;
+        document.getElementById('sum-rtr').querySelector('.summary-row-code').textContent = 'EDGEEQUIP';
+      }
+
+      const ipEl = document.getElementById('sum-ip-val');
+      if (ipVal) {
+        const ipCode = ipVal === '/30' ? 'IPADRES30' : ipVal === '/29' ? 'IPADRES29' : 'IPADDHCP';
+        ipEl.textContent = ipVal === 'DHCP' ? 'DHCP — ' + ipCode : 'Static ' + ipVal + ' — ' + ipCode;
+      } else {
+        ipEl.textContent = '— not selected';
+      }
+    }
+
+    updateSummary();
+  </script>
+</body>
+</html>
